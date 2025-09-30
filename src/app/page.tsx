@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Trophy,
   Users,
@@ -123,25 +124,35 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4 md:py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                {leagueData?.name}
-              </h1>
-              <p className="text-muted-foreground">
-                Fantasy Football League Dashboard
-              </p>
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="relative">
+                <Image
+                  src="/favicon.ico"
+                  alt="League Logo"
+                  width={40}
+                  height={40}
+                  className="rounded-lg md:w-12 md:h-12"
+                />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-3xl font-bold text-foreground">
+                  {leagueData?.name}
+                </h1>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="secondary" className="text-sm">
-                <Trophy className="w-4 h-4 mr-1" />
-                {leagueData?.settings?.num_teams} Teams
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                <Users className="w-4 h-4 mr-1" />
-                {leagueData?.settings?.divisions} Divisions
-              </Badge>
+            <div className="flex items-center gap-2 md:gap-4">
+              <div className="hidden sm:flex items-center gap-2 md:gap-4">
+                <Badge variant="secondary" className="text-xs md:text-sm">
+                  <Trophy className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                  {leagueData?.settings?.num_teams} Teams
+                </Badge>
+                <Badge variant="outline" className="text-xs md:text-sm">
+                  <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+                  {leagueData?.settings?.divisions} Divisions
+                </Badge>
+              </div>
               <ThemeToggle />
             </div>
           </div>
