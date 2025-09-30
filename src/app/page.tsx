@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Trophy,
   Users,
@@ -12,6 +13,7 @@ import {
   Zap,
   ArrowRightLeft,
   AlertCircle,
+  Calendar,
 } from "lucide-react";
 import {
   Card,
@@ -23,11 +25,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TeamData } from "@/types/sleeper";
-import LeagueWinnerPredictor from "@/components/LeagueWinnerPredictor";
-import DivisionShuffler from "@/components/DivisionShuffler";
+import Navigation from "@/components/Navigation";
 import ThemeToggle from "@/components/ThemeToggle";
-import LuckIndex from "@/components/LuckIndex";
-import MatchupPredictor from "@/components/MatchupPredictor";
 
 const LEAGUE_ID = "1180953029979762688";
 
@@ -123,9 +122,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container mx-auto px-4 py-4 md:py-6">
           <div className="flex items-center justify-between">
+            {/* Logo and Title */}
             <div className="flex items-center gap-3 md:gap-4">
               <div className="relative">
                 <Image
@@ -137,22 +137,28 @@ export default function Home() {
                 />
               </div>
               <div>
-                <h1 className="text-xl md:text-3xl font-bold text-foreground">
-                  {leagueData?.name}
+                <h1 className="text-lg md:text-2xl lg:text-3xl font-bold text-foreground truncate">
+                  {leagueData?.name || "Fantasy League"}
                 </h1>
               </div>
             </div>
+
+            {/* Navigation and Controls */}
             <div className="flex items-center gap-2 md:gap-4">
+              <Navigation />
+
+              {/* League Info Badges */}
               <div className="hidden sm:flex items-center gap-2 md:gap-4">
                 <Badge variant="secondary" className="text-xs md:text-sm">
                   <Trophy className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                  {leagueData?.settings?.num_teams} Teams
+                  {leagueData?.settings?.num_teams || 12} Teams
                 </Badge>
                 <Badge variant="outline" className="text-xs md:text-sm">
                   <Users className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                  {leagueData?.settings?.divisions} Divisions
+                  {leagueData?.settings?.divisions || 2} Divisions
                 </Badge>
               </div>
+
               <ThemeToggle />
             </div>
           </div>
@@ -241,82 +247,109 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Division Shuffler */}
-        <DivisionShuffler
-          teams={teams}
-          originalDivisions={{
-            division1: teams.filter((team) => team.division === 1),
-            division2: teams.filter((team) => team.division === 2),
-          }}
-          divisionNames={{
-            division1: getDivisionName(1),
-            division2: getDivisionName(2),
-          }}
-        />
+        {/* Current Divisions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {[1, 2].map((divisionNum) => (
+            <Card key={divisionNum}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  {getDivisionName(divisionNum)}
+                </CardTitle>
+                <CardDescription>Current division standings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {teams
+                    .filter((team) => team.division === divisionNum)
+                    .sort((a, b) => b.wins - b.losses - (a.wins - a.losses))
+                    .map((team, index) => (
+                      <div
+                        key={team.roster.roster_id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge
+                            variant="outline"
+                            className="w-8 h-8 rounded-full flex items-center justify-center"
+                          >
+                            {index + 1}
+                          </Badge>
+                          <div>
+                            <p className="font-medium">{team.teamName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {team.ownerName}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {team.wins}-{team.losses}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {team.pointsFor.toFixed(1)} PF
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        {/* Power Rankings */}
+        {/* Quick Access to Tools */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Power Rankings
+              <Zap className="w-5 h-5" />
+              League Tools
             </CardTitle>
             <CardDescription>
-              Based on win percentage and point differential
+              Explore advanced analytics and league management tools
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {teams
-                .sort((a, b) => getPowerRanking(b) - getPowerRanking(a))
-                .map((team, index) => (
-                  <div
-                    key={team.roster.roster_id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30"
-                  >
-                    <div className="flex items-center gap-4">
-                      <Badge
-                        variant={index < 3 ? "default" : "secondary"}
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold"
-                      >
-                        {index + 1}
-                      </Badge>
-                      <div>
-                        <p className="font-medium text-lg">{team.teamName}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {team.ownerName} • {team.wins}-{team.losses} •{" "}
-                          {team.pointsFor.toFixed(1)} PF
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">
-                        {getPowerRanking(team)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Power Score
-                      </p>
-                    </div>
-                  </div>
-                ))}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <Link href="/predictions" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <Trophy className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                  <p className="text-sm font-medium">Predictions</p>
+                </div>
+              </Link>
+              <Link href="/shuffle" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <Shuffle className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                  <p className="text-sm font-medium">Shuffle</p>
+                </div>
+              </Link>
+              <Link href="/matchups" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <Target className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                  <p className="text-sm font-medium">Matchups</p>
+                </div>
+              </Link>
+              <Link href="/luck" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <TrendingUp className="w-6 h-6 mx-auto mb-2 text-purple-500" />
+                  <p className="text-sm font-medium">Luck Index</p>
+                </div>
+              </Link>
+              <Link href="/rankings" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <BarChart3 className="w-6 h-6 mx-auto mb-2 text-red-500" />
+                  <p className="text-sm font-medium">Rankings</p>
+                </div>
+              </Link>
+              <Link href="/draft" className="group">
+                <div className="p-4 border rounded-lg hover:bg-muted transition-colors text-center">
+                  <Calendar className="w-6 h-6 mx-auto mb-2 text-indigo-500" />
+                  <p className="text-sm font-medium">Draft Analysis</p>
+                </div>
+              </Link>
             </div>
           </CardContent>
         </Card>
-
-        {/* League Winner Predictor */}
-        <LeagueWinnerPredictor teams={teams} />
-
-        {/* Advanced Tools Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Zap className="w-6 h-6" />
-            Advanced League Tools
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <LuckIndex teams={teams} />
-            <MatchupPredictor teams={teams} />
-          </div>
-        </div>
       </main>
     </div>
   );
