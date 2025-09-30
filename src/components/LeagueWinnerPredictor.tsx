@@ -179,16 +179,16 @@ export default function LeagueWinnerPredictor({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {predictions.map((prediction, index) => (
             <div
               key={prediction.team.roster.roster_id}
-              className={`p-6 rounded-xl border-2 ${getRankingColor(
+              className={`p-4 md:p-6 rounded-xl border-2 ${getRankingColor(
                 index
-              )} transition-all hover:shadow-lg hover:scale-[1.02] duration-200`}
+              )} transition-all hover:shadow-lg hover:scale-[1.01] md:hover:scale-[1.02] duration-200`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 md:gap-4">
                   <div className="flex items-center gap-2">
                     {getRankingIcon(index)}
                     <Badge
@@ -199,27 +199,27 @@ export default function LeagueWinnerPredictor({
                           ? "secondary"
                           : "outline"
                       }
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                      className="w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold"
                     >
                       {index + 1}
                     </Badge>
                   </div>
-                  <div>
-                    <p className="font-bold text-lg">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-base md:text-lg truncate">
                       {prediction.team.teamName}
                     </p>
-                    <p className="text-sm opacity-75">
+                    <p className="text-xs md:text-sm opacity-75 truncate">
                       {prediction.team.ownerName}
                     </p>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
+                      <span className="text-xs md:text-sm">
                         {prediction.team.wins}-{prediction.team.losses} Record
                       </span>
-                      <span className="text-sm">
+                      <span className="text-xs md:text-sm">
                         {prediction.team.pointsFor.toFixed(1)} PF
                       </span>
                       <span
-                        className={`text-sm flex items-center gap-1 ${getMomentumColor(
+                        className={`text-xs md:text-sm flex items-center gap-1 ${getMomentumColor(
                           prediction.momentum
                         )}`}
                       >
@@ -231,22 +231,22 @@ export default function LeagueWinnerPredictor({
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="grid grid-cols-3 gap-6 text-center">
+                <div className="w-full md:w-auto">
+                  <div className="grid grid-cols-3 gap-2 md:gap-6 text-center">
                     <div>
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-lg md:text-2xl font-bold text-primary">
                         {prediction.championshipProbability}%
                       </p>
                       <p className="text-xs opacity-75">Championship</p>
                     </div>
                     <div>
-                      <p className="text-xl font-semibold">
+                      <p className="text-base md:text-xl font-semibold">
                         {prediction.playoffProbability}%
                       </p>
                       <p className="text-xs opacity-75">Playoffs</p>
                     </div>
                     <div>
-                      <p className="text-xl font-semibold">
+                      <p className="text-base md:text-xl font-semibold">
                         {prediction.winProbability}%
                       </p>
                       <p className="text-xs opacity-75">Win Rate</p>
@@ -257,7 +257,7 @@ export default function LeagueWinnerPredictor({
 
               {/* Additional Stats */}
               <div className="mt-4 pt-4 border-t border-current/20">
-                <div className="grid grid-cols-3 gap-6 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 text-xs md:text-sm">
                   <div className="flex justify-between">
                     <span>Strength Score:</span>
                     <span className="font-medium">

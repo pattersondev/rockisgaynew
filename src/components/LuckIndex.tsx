@@ -23,14 +23,19 @@ interface LuckIndexProps {
 
 export default function LuckIndex({ teams }: LuckIndexProps) {
   const calculateExpectedRecord = (team: TeamData) => {
-    // Simple expected record based on points for vs league average
-    const leagueAvgPF =
-      teams.reduce((sum, t) => sum + t.pointsFor, 0) / teams.length;
-    const leagueAvgPA =
-      teams.reduce((sum, t) => sum + t.pointsAgainst, 0) / teams.length;
+    // Calculate expected wins based on points for vs points against ratio
+    // This is a more accurate method than using league averages
 
-    const expectedWins =
-      (team.pointsFor / leagueAvgPF) * (team.wins + team.losses);
+    const gamesPlayed = team.wins + team.losses;
+    if (gamesPlayed === 0) return 0;
+
+    // Pythagorean expectation: Expected Win% = (PF^2) / (PF^2 + PA^2)
+    const pythagoreanWinPct =
+      (team.pointsFor * team.pointsFor) /
+      (team.pointsFor * team.pointsFor +
+        team.pointsAgainst * team.pointsAgainst);
+
+    const expectedWins = pythagoreanWinPct * gamesPlayed;
     return Math.round(expectedWins * 10) / 10;
   };
 
@@ -42,25 +47,26 @@ export default function LuckIndex({ teams }: LuckIndexProps) {
   };
 
   const getLuckCategory = (luckScore: number) => {
-    if (luckScore > 1)
+    // More realistic thresholds for fantasy football luck
+    if (luckScore > 1.5)
       return {
         label: "Very Lucky",
         color: "text-green-600",
         variant: "default" as const,
       };
-    if (luckScore > 0.5)
+    if (luckScore > 0.8)
       return {
         label: "Lucky",
         color: "text-green-500",
         variant: "secondary" as const,
       };
-    if (luckScore < -1)
+    if (luckScore < -1.5)
       return {
         label: "Very Unlucky",
         color: "text-red-600",
         variant: "destructive" as const,
       };
-    if (luckScore < -0.5)
+    if (luckScore < -0.8)
       return {
         label: "Unlucky",
         color: "text-orange-500",
