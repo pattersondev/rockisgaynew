@@ -1,0 +1,171 @@
+export interface SleeperLeague {
+  name: string;
+  status: string;
+  metadata: {
+    auto_continue: string;
+    division_1: string;
+    division_2: string;
+    keeper_deadline: string;
+    latest_league_winner_roster_id: string;
+    minis_enabled: string;
+  };
+  settings: {
+    best_ball: number;
+    last_report: number;
+    waiver_budget: number;
+    disable_adds: number;
+    divisions: number;
+    capacity_override: number;
+    waiver_bid_min: number;
+    taxi_deadline: number;
+    draft_rounds: number;
+    reserve_allow_na: number;
+    start_week: number;
+    playoff_seed_type: number;
+    playoff_teams: number;
+    veto_votes_needed: number;
+    num_teams: number;
+    daily_waivers_hour: number;
+    playoff_type: number;
+    taxi_slots: number;
+    sub_start_time_eligibility: number;
+    last_scored_leg: number;
+    daily_waivers_days: number;
+    sub_lock_if_starter_active: number;
+    playoff_week_start: number;
+    waiver_clear_days: number;
+    reserve_allow_doubtful: number;
+    commissioner_direct_invite: number;
+    veto_auto_poll: number;
+    reserve_allow_dnr: number;
+    taxi_allow_vets: number;
+    waiver_day_of_week: number;
+    playoff_round_type: number;
+    reserve_allow_out: number;
+    reserve_allow_sus: number;
+    veto_show_votes: number;
+    trade_deadline: number;
+    taxi_years: number;
+    daily_waivers: number;
+    faab_suggestions: number;
+    disable_trades: number;
+    pick_trading: number;
+    type: number;
+    max_keepers: number;
+    waiver_type: number;
+    max_subs: number;
+    league_average_match: number;
+    trade_review_days: number;
+    bench_lock: number;
+    offseason_adds: number;
+    leg: number;
+    reserve_slots: number;
+    reserve_allow_cov: number;
+    daily_waivers_last_ran: number;
+  };
+  avatar: string;
+  company_id: string | null;
+  last_message_id: string;
+  sport: string;
+  season_type: string;
+  season: string;
+  shard: number;
+  scoring_settings: Record<string, number>;
+  last_author_avatar: string | null;
+  last_author_display_name: string;
+  last_author_id: string;
+  last_author_is_bot: boolean;
+  last_message_attachment: string | null;
+  last_message_text_map: any;
+  last_message_time: number;
+  last_pinned_message_id: string;
+  last_read_id: string | null;
+  draft_id: string;
+  league_id: string;
+  previous_league_id: string;
+  bracket_id: string | null;
+  bracket_overrides_id: string | null;
+  group_id: string | null;
+  loser_bracket_id: string | null;
+  loser_bracket_overrides_id: string | null;
+  roster_positions: string[];
+  total_rosters: number;
+}
+
+export interface SleeperRoster {
+  co_owners: string[] | null;
+  keepers: string[] | null;
+  league_id: string;
+  metadata: {
+    record: string;
+    streak: string;
+    [key: string]: string;
+  };
+  owner_id: string;
+  player_map: Record<string, any> | null;
+  players: string[];
+  reserve: string[] | null;
+  roster_id: number;
+  settings: {
+    division: number;
+    fpts: number;
+    fpts_against: number;
+    fpts_against_decimal: number;
+    fpts_decimal: number;
+    losses: number;
+    ppts: number;
+    ppts_decimal: number;
+    ties: number;
+    total_moves: number;
+    waiver_budget_used: number;
+    waiver_position: number;
+    wins: number;
+  };
+  starters: string[];
+  taxi: string[] | null;
+}
+
+export interface SleeperUser {
+  avatar: string;
+  display_name: string;
+  is_bot: boolean;
+  is_owner: boolean;
+  league_id: string;
+  metadata: {
+    allow_pn?: string;
+    avatar?: string;
+    mention_pn?: string;
+    team_name: string;
+    allow_sms?: string;
+    archived?: string;
+    league_report_pn?: string;
+    mascot_message?: string;
+    player_like_pn?: string;
+    player_nickname_update?: string;
+    team_name_update?: string;
+    trade_block_pn?: string;
+    transaction_commissioner?: string;
+    transaction_free_agent?: string;
+    transaction_trade?: string;
+    transaction_waiver?: string;
+    user_message_pn?: string;
+    [key: string]: string | undefined;
+  };
+  settings: any;
+  user_id: string;
+}
+
+export interface TeamData {
+  roster: SleeperRoster;
+  user: SleeperUser;
+  teamName: string;
+  ownerName: string;
+  wins: number;
+  losses: number;
+  ties: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  division: number;
+  streak: string;
+  record: string;
+}

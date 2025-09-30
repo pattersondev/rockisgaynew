@@ -1,103 +1,312 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Trophy,
+  Users,
+  TrendingUp,
+  Shuffle,
+  Target,
+  BarChart3,
+  Zap,
+  ArrowRightLeft,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { TeamData } from "@/types/sleeper";
+import LeagueWinnerPredictor from "@/components/LeagueWinnerPredictor";
+import DivisionShuffler from "@/components/DivisionShuffler";
+import ThemeToggle from "@/components/ThemeToggle";
+import LuckIndex from "@/components/LuckIndex";
+import MatchupPredictor from "@/components/MatchupPredictor";
+
+const LEAGUE_ID = "1180953029979762688";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [leagueData, setLeagueData] = useState<any>(null);
+  const [teams, setTeams] = useState<TeamData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const fetchLeagueData = async () => {
+      try {
+        // Fetch league info
+        const leagueResponse = await fetch(
+          `https://api.sleeper.app/v1/league/${LEAGUE_ID}`
+        );
+        const league = await leagueResponse.json();
+
+        // Fetch rosters
+        const rostersResponse = await fetch(
+          `https://api.sleeper.app/v1/league/${LEAGUE_ID}/rosters`
+        );
+        const rosters = await rostersResponse.json();
+
+        // Fetch users
+        const usersResponse = await fetch(
+          `https://api.sleeper.app/v1/league/${LEAGUE_ID}/users`
+        );
+        const users = await usersResponse.json();
+
+        // Combine data
+        const teamsData: TeamData[] = rosters.map((roster: any) => {
+          const user = users.find((u: any) => u.user_id === roster.owner_id);
+          return {
+            roster,
+            user,
+            teamName: user?.metadata?.team_name || "Unknown Team",
+            ownerName: user?.display_name || "Unknown Owner",
+            wins: roster.settings.wins,
+            losses: roster.settings.losses,
+            ties: roster.settings.ties,
+            pointsFor:
+              roster.settings.fpts + roster.settings.fpts_decimal / 100,
+            pointsAgainst:
+              roster.settings.fpts_against +
+              roster.settings.fpts_against_decimal / 100,
+            division: roster.settings.division,
+            streak: roster.metadata.streak,
+            record: roster.metadata.record,
+          };
+        });
+
+        setLeagueData(league);
+        setTeams(
+          teamsData.sort((a, b) => b.wins - b.losses - (a.wins - a.losses))
+        );
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching league data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchLeagueData();
+  }, []);
+
+  const getPowerRanking = (team: TeamData) => {
+    const winPct = team.wins / (team.wins + team.losses);
+    const pointDiff = team.pointsFor - team.pointsAgainst;
+    const powerScore = winPct * 100 + pointDiff / 10;
+    return Math.round(powerScore);
+  };
+
+  const getDivisionName = (divisionNum: number) => {
+    if (leagueData?.metadata) {
+      return divisionNum === 1
+        ? leagueData.metadata.division_1
+        : leagueData.metadata.division_2;
+    }
+    return `Division ${divisionNum}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-lg">Loading league data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {leagueData?.name}
+              </h1>
+              <p className="text-muted-foreground">
+                Fantasy Football League Dashboard
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary" className="text-sm">
+                <Trophy className="w-4 h-4 mr-1" />
+                {leagueData?.settings?.num_teams} Teams
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                <Users className="w-4 h-4 mr-1" />
+                {leagueData?.settings?.divisions} Divisions
+              </Badge>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Points
+              </CardTitle>
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {teams
+                  .reduce((sum, team) => sum + team.pointsFor, 0)
+                  .toFixed(0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                League total this season
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Highest Scorer
+              </CardTitle>
+              <Zap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {Math.max(...teams.map((t) => t.pointsFor)).toFixed(1)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {
+                  teams.find(
+                    (t) =>
+                      t.pointsFor === Math.max(...teams.map((t) => t.pointsFor))
+                  )?.teamName
+                }
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Best Record</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {Math.max(...teams.map((t) => t.wins))}-
+                {Math.min(...teams.map((t) => t.losses))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {
+                  teams.find(
+                    (t) => t.wins === Math.max(...teams.map((t) => t.wins))
+                  )?.teamName
+                }
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                League Champion
+              </CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {teams.sort(
+                  (a, b) => getPowerRanking(b) - getPowerRanking(a)
+                )[0]?.teamName || "TBD"}
+              </div>
+              <p className="text-xs text-muted-foreground">Current favorite</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Division Shuffler */}
+        <DivisionShuffler
+          teams={teams}
+          originalDivisions={{
+            division1: teams.filter((team) => team.division === 1),
+            division2: teams.filter((team) => team.division === 2),
+          }}
+          divisionNames={{
+            division1: getDivisionName(1),
+            division2: getDivisionName(2),
+          }}
+        />
+
+        {/* Power Rankings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Power Rankings
+            </CardTitle>
+            <CardDescription>
+              Based on win percentage and point differential
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {teams
+                .sort((a, b) => getPowerRanking(b) - getPowerRanking(a))
+                .map((team, index) => (
+                  <div
+                    key={team.roster.roster_id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Badge
+                        variant={index < 3 ? "default" : "secondary"}
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold"
+                      >
+                        {index + 1}
+                      </Badge>
+                      <div>
+                        <p className="font-medium text-lg">{team.teamName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {team.ownerName} • {team.wins}-{team.losses} •{" "}
+                          {team.pointsFor.toFixed(1)} PF
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">
+                        {getPowerRanking(team)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Power Score
+                      </p>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* League Winner Predictor */}
+        <LeagueWinnerPredictor teams={teams} />
+
+        {/* Advanced Tools Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <Zap className="w-6 h-6" />
+            Advanced League Tools
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <LuckIndex teams={teams} />
+            <MatchupPredictor teams={teams} />
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
